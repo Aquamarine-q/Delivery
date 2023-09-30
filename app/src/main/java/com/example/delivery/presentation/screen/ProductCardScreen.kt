@@ -6,13 +6,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedIconButton
@@ -27,8 +29,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.delivery.R
 import com.example.delivery.domain.model.Product
@@ -36,20 +36,22 @@ import com.example.delivery.navigation.Screen
 import com.example.delivery.presentation.viewmodel.HomeViewModel
 import com.example.delivery.presentation.viewstate.HomeViewState
 import com.example.delivery.ui.theme.LightGray
+import com.example.delivery.ui.theme.Orange40
+import com.example.delivery.ui.theme.White
 
 @Composable
 fun ProductCardScreen(
     navController: NavHostController,
-    productId: String?,
-    viewModelFactory: () -> ViewModelProvider.Factory,
-    homeViewModel: HomeViewModel = viewModel(factory = viewModelFactory()),
+    productId: Int?,
+    viewModel: HomeViewModel,
 ) {
-    val model by homeViewModel.viewState.observeAsState(HomeViewState())
+    val model by viewModel.viewState.observeAsState(HomeViewState())
     if (productId != null) {
         ProductCard(
             navController = navController,
             basketProducts = model.basketProducts,
-            product = model.products.findLast { product -> product.id == productId.toInt() }
+            product = model.products.first { product -> product.id == productId },
+            cost = model.cost
         )
     }
 }
@@ -59,10 +61,11 @@ fun ProductCard(
     navController: NavHostController,
     basketProducts: List<Product>,
     product: Product?,
+    cost: Int,
 ) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
         Box {
@@ -105,7 +108,7 @@ fun ProductCard(
             ) {
                 Text(text = "Вес", color = Color.Gray)
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "400 г")
+                Text(text = String.format("%s %s", product.measure.toString(), product.measureUnit))
             }
             Divider(color = Color.Gray, thickness = 1.dp)
             Row(
@@ -115,7 +118,7 @@ fun ProductCard(
             ) {
                 Text(text = "Энерг. ценность", color = Color.Gray)
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "198,8 ккал")
+                Text(text = String.format("%s ккал", product.energyPer100Grams.toString()))
             }
             Divider(color = Color.Gray, thickness = 1.dp)
             Row(
@@ -125,7 +128,7 @@ fun ProductCard(
             ) {
                 Text(text = "Белки", color = Color.Gray)
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "10 г")
+                Text(text = String.format("%s г", product.proteinsPer100Grams.toString()))
             }
             Divider(color = Color.Gray, thickness = 1.dp)
             Row(
@@ -135,7 +138,7 @@ fun ProductCard(
             ) {
                 Text(text = "Жиры", color = Color.Gray)
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "8,5 г")
+                Text(text = String.format("%s г", product.fatsPer100Grams.toString()))
             }
             Divider(color = Color.Gray, thickness = 1.dp)
             Row(
@@ -145,10 +148,22 @@ fun ProductCard(
             ) {
                 Text(text = "Углеводы", color = Color.Gray)
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "19,7 г")
+                Text(text = String.format("%s г", product.carbohydratesPer100Grams.toString()))
             }
         }
         Divider(color = Color.Gray, thickness = 1.dp)
+        Button(
+            onClick = {
+                navController.navigate(Screen.Basket.route)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(4.dp),
+            colors = ButtonDefaults.buttonColors(Orange40)
+        ) {
+            Text(text = String.format("В корзину за  %d ₽", cost), color = White)
+        }
     }
 }
 

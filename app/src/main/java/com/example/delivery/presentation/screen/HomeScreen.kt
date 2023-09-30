@@ -60,8 +60,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.delivery.R
 import com.example.delivery.data.model.Category
@@ -77,10 +75,9 @@ import com.example.delivery.ui.theme.White
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    viewModelFactory: () -> ViewModelProvider.Factory,
-    homeViewModel: HomeViewModel = viewModel(factory = viewModelFactory()),
+    viewModel: HomeViewModel,
 ) {
-    val model by homeViewModel.viewState.observeAsState(HomeViewState())
+    val model by viewModel.viewState.observeAsState(HomeViewState())
     HomeContent(
         categories = model.categories,
         products = model.products,
@@ -88,20 +85,20 @@ fun HomeScreen(
         isSheetOpen = model.isSheetOpen,
         isSearchViewOpened = model.isSearchViewOpened,
         searchText = model.searchText,
-        onSheetStateChanged = { state -> homeViewModel.onSheetStateChanged(state) },
-        onCheckedChange = { index, checked -> homeViewModel.onCheckedChanged(index, checked) },
-        onTextChange = { text -> homeViewModel.onSearchTextChanged(text) },
-        onSearchViewStateChanged = { state -> homeViewModel.onSearchViewStateChanged(state) },
+        onSheetStateChanged = { state -> viewModel.onSheetStateChanged(state) },
+        onCheckedChange = { index, checked -> viewModel.onCheckedChanged(index, checked) },
+        onTextChange = { text -> viewModel.onSearchTextChanged(text) },
+        onSearchViewStateChanged = { state -> viewModel.onSearchViewStateChanged(state) },
         selectedCategory = model.selectedCategory,
-        onCategoryChanged = { category -> homeViewModel.onCategoryChanged(category) },
-        onAddBasketItem = { product -> homeViewModel.onAddBasketItem(product) },
-        onRemoveBasketItem = { product -> homeViewModel.onRemoveBasketItem(product) },
+        onCategoryChanged = { category -> viewModel.onCategoryChanged(category) },
+        onAddBasketItem = { product -> viewModel.onAddBasketItem(product) },
+        onRemoveBasketItem = { product -> viewModel.onRemoveBasketItem(product) },
         basketProducts = model.basketProducts,
         cost = model.cost,
         navController = navController
     )
     LaunchedEffect(Unit) {
-        homeViewModel.onScreenOpened()
+        viewModel.onScreenOpened()
     }
 }
 

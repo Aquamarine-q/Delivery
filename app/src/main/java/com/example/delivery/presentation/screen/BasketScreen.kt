@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,6 +28,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,11 +42,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.delivery.R
 import com.example.delivery.navigation.Screen
+import com.example.delivery.presentation.viewmodel.HomeViewModel
+import com.example.delivery.presentation.viewstate.HomeViewState
 import com.example.delivery.ui.theme.LightGray
 import com.example.delivery.ui.theme.Orange40
+import com.example.delivery.ui.theme.White
 
 @Composable
-fun BasketScreen(navController: NavHostController) {
+fun BasketScreen(navController: NavHostController, viewModel: HomeViewModel) {
+    val model by viewModel.viewState.observeAsState(HomeViewState())
+    val cost = model.cost
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         TopAppBar(
             title = {
@@ -63,13 +73,29 @@ fun BasketScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxWidth(),
         )
     }) { values ->
-        LazyColumn(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(values)
         ) {
-            items(10) {
-                BasketItem()
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+            ) {
+                items(10) {
+                    BasketItem()
+                }
+            }
+            Button(
+                onClick = {},
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(Orange40)
+            ) {
+                Text(text = String.format("Заказать за  %d ₽", cost), color = White)
             }
         }
     }

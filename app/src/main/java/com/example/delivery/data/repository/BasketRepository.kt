@@ -13,19 +13,17 @@ class BasketRepository
         return products
     }
 
-    fun getFinalCost():Int{
+    fun getFinalCost(): Int {
         return finalCost
     }
 
     fun addProduct(product: Product) {
+        finalCost += product.currentPrice
         products.add(product)
     }
 
     fun removeProduct(product: Product) {
+        finalCost -= product.currentPrice
         products.remove(product)
-    }
-
-    fun addCost(cost: Int) {
-        finalCost += cost
     }
 }

@@ -97,14 +97,16 @@ class HomeViewModel
     fun onAddBasketItem(product: Product) {
         basketRepository.addProduct(product)
         _viewState.value = _viewState.value?.copy(
-            basketProducts = basketRepository.getProducts()
+            basketProducts = basketRepository.getProducts(),
+            cost = basketRepository.getFinalCost(),
         )
     }
 
     fun onRemoveBasketItem(product: Product) {
         basketRepository.removeProduct(product)
         _viewState.value = _viewState.value?.copy(
-            basketProducts = basketRepository.getProducts()
+            basketProducts = basketRepository.getProducts(),
+            cost = basketRepository.getFinalCost()
         )
     }
 

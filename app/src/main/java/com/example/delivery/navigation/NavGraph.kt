@@ -3,6 +3,7 @@ package com.example.delivery.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -12,12 +13,14 @@ import com.example.delivery.presentation.screen.AnimatedSplashScreen
 import com.example.delivery.presentation.screen.BasketScreen
 import com.example.delivery.presentation.screen.HomeScreen
 import com.example.delivery.presentation.screen.ProductCardScreen
+import com.example.delivery.presentation.viewmodel.HomeViewModel
 
 @Composable
 fun SetupNavGraph(navController: NavHostController, factory: ViewModelProvider.Factory) {
     val getVmFactory: () -> ViewModelProvider.Factory = remember {
         { factory }
     }
+    val homeViewModel: HomeViewModel = viewModel(factory = getVmFactory())
 
     NavHost(
         navController = navController, startDestination = Screen.Splash.route
@@ -26,19 +29,19 @@ fun SetupNavGraph(navController: NavHostController, factory: ViewModelProvider.F
             AnimatedSplashScreen(navController)
         }
         composable(route = Screen.Home.route) {
-            HomeScreen(navController = navController, viewModelFactory = getVmFactory)
+            HomeScreen(navController = navController, viewModel = homeViewModel)
         }
         composable(route = Screen.Basket.route) {
-            BasketScreen(navController)
+            BasketScreen(navController, viewModel = homeViewModel)
         }
         composable(
             route = Screen.ProductCard.route + "/{productId}",
-            arguments = listOf(navArgument("productId") { type = NavType.StringType })
+            arguments = listOf(navArgument("productId") { type = NavType.IntType })
         ) { backStackEntry ->
             ProductCardScreen(
                 navController = navController,
-                productId = backStackEntry.arguments?.getString("productId"),
-                viewModelFactory = getVmFactory,
+                productId = backStackEntry.arguments?.getInt("productId"),
+                viewModel = homeViewModel,
             )
         }
     }
