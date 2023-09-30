@@ -481,7 +481,7 @@ fun ChangeProductCountButton(
             )
         }
         Text(
-            text = basketProducts.count { product -> basketProducts.contains(product) }.toString(),
+            text = basketProducts.count { it == product }.toString(),
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .padding(8.dp)
