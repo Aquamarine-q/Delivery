@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -28,6 +30,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -35,23 +38,48 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.delivery.R
+import com.example.delivery.domain.model.Product
 import com.example.delivery.navigation.Screen
-import com.example.delivery.presentation.viewmodel.HomeViewModel
-import com.example.delivery.presentation.viewstate.HomeViewState
+import com.example.delivery.presentation.viewmodel.BasketViewModel
+import com.example.delivery.presentation.viewstate.BasketViewState
 import com.example.delivery.ui.theme.LightGray
 import com.example.delivery.ui.theme.Orange40
 import com.example.delivery.ui.theme.White
 
 @Composable
-fun BasketScreen(navController: NavHostController, viewModel: HomeViewModel) {
-    val model by viewModel.viewState.observeAsState(HomeViewState())
-    val cost = model.cost
+fun BasketScreen(
+    navController: NavHostController,
+    viewModel: BasketViewModel,
+) {
+    val model by viewModel.viewState.observeAsState(BasketViewState())
+    BasketContent(
+        navController = navController,
+        products = model.products,
+        cost = model.cost,
+        onAddBasketItem = { product -> viewModel.onAddBasketItem(product) },
+        onRemoveBasketItem = { product -> viewModel.onRemoveBasketItem(product) },
+    )
+    LaunchedEffect(Unit) {
+        viewModel.onScreenOpened()
+    }
+}
+
+@Composable
+fun BasketContent(
+    navController: NavHostController,
+    products: List<Product>,
+    cost: Int,
+    onAddBasketItem: (Product) -> Unit,
+    onRemoveBasketItem: (Product) -> Unit,
+) {
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         TopAppBar(
             title = {
@@ -73,36 +101,50 @@ fun BasketScreen(navController: NavHostController, viewModel: HomeViewModel) {
             modifier = Modifier.fillMaxWidth(),
         )
     }) { values ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(values)
-        ) {
-            LazyColumn(
+        if (products.isNotEmpty()) {
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .weight(1f)
+                    .padding(values)
             ) {
-                items(10) {
-                    BasketItem()
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                ) {
+                    items(products.distinct()) { product ->
+                        BasketItem(
+                            product,
+                            products,
+                            onAddBasketItem,
+                            onRemoveBasketItem,
+                        )
+                    }
+                }
+                Button(
+                    onClick = {},
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.buttonColors(Orange40)
+                ) {
+                    Text(text = String.format("Заказать за  %d ₽", cost), color = White)
                 }
             }
-            Button(
-                onClick = {},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(4.dp),
-                colors = ButtonDefaults.buttonColors(Orange40)
-            ) {
-                Text(text = String.format("Заказать за  %d ₽", cost), color = White)
-            }
+        } else {
+            EmptyBasket(values)
         }
     }
 }
 
 @Composable
-fun BasketItem() {
+fun BasketItem(
+    product: Product,
+    products: List<Product>,
+    onAddBasketItem: (Product) -> Unit,
+    onRemoveBasketItem: (Product) -> Unit,
+) {
     Row {
         Image(
             painter = painterResource(id = R.drawable.photo),
@@ -115,11 +157,11 @@ fun BasketItem() {
         )
         Column {
             Text(
-                text = "Том Ям", modifier = Modifier.padding(16.dp)
+                text = product.name, modifier = Modifier.padding(16.dp)
             )
             Row {
                 OutlinedIconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { onRemoveBasketItem(product) },
                     modifier = Modifier
                         .wrapContentSize()
                         .padding(16.dp)
@@ -134,7 +176,7 @@ fun BasketItem() {
                     )
                 }
                 Text(
-                    text = "1",
+                    text = products.count { it == product }.toString(),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .padding(8.dp)
@@ -142,7 +184,7 @@ fun BasketItem() {
                     fontSize = 16.sp
                 )
                 OutlinedIconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = { onAddBasketItem(product) },
                     modifier = Modifier
                         .wrapContentSize()
                         .padding(16.dp)
@@ -157,14 +199,27 @@ fun BasketItem() {
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "480 ₽",
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.CenterVertically),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                if (product.oldPrice == null) {
+                    Text(
+                        text = String.format("%d ₽", product.currentPrice),
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .align(Alignment.CenterVertically),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                } else {
+                    Text(
+                        text = String.format("%d ₽", product.currentPrice),
+                        color = Color.Black,
+                    )
+                    Text(
+                        modifier = Modifier.padding(8.dp),
+                        text = String.format("%d ₽", product.oldPrice),
+                        color = Color.LightGray,
+                        style = TextStyle(textDecoration = TextDecoration.LineThrough)
+                    )
+                }
             }
         }
     }
@@ -172,8 +227,12 @@ fun BasketItem() {
 }
 
 @Composable
-fun EmptyBasket() {
-    Box(modifier = Modifier.fillMaxSize()) {
+fun EmptyBasket(values: PaddingValues) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(values)
+    ) {
         Text(
             text = "Пусто, выберите блюда в каталоге :)",
             color = Color.Gray,
@@ -185,6 +244,5 @@ fun EmptyBasket() {
 @Composable
 @Preview
 fun BasketScreenPreview() {
-    //BasketScreen()
-    //EmptyBasket()
+    EmptyBasket(PaddingValues())
 }

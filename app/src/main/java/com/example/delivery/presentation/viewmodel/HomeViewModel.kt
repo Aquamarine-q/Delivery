@@ -23,7 +23,7 @@ class HomeViewModel
     private val _viewState = MutableLiveData(HomeViewState())
     val viewState: LiveData<HomeViewState> = _viewState
 
-    private var products: List<Product> = mutableListOf()
+    private var products: List<Product> = listOf()
 
     fun onScreenOpened() {
         viewModelScope.launch {
@@ -81,10 +81,12 @@ class HomeViewModel
     }
 
     fun onSearchTextChanged(text: String) {
-        _viewState.value =
-            _viewState.value?.copy(searchText = text, products = products.filter { product ->
+        _viewState.value = _viewState.value?.copy(
+            searchText = text,
+            products = products.filter { product ->
                 product.name.contains(text) || product.description.contains(text)
-            })
+            },
+        )
     }
 
     fun onCategoryChanged(category: Category) {
@@ -106,11 +108,15 @@ class HomeViewModel
         basketRepository.removeProduct(product)
         _viewState.value = _viewState.value?.copy(
             basketProducts = basketRepository.getProducts(),
-            cost = basketRepository.getFinalCost()
+            cost = basketRepository.getFinalCost(),
         )
     }
 
     private fun getDefaultFilterState(): FilterState {
-        return FilterState(isWithoutMeat = false, isSpicy = false, isDiscounted = false)
+        return FilterState(
+            isWithoutMeat = false,
+            isSpicy = false,
+            isDiscounted = false,
+        )
     }
 }

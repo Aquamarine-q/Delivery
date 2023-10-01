@@ -13,10 +13,14 @@ import com.example.delivery.presentation.screen.AnimatedSplashScreen
 import com.example.delivery.presentation.screen.BasketScreen
 import com.example.delivery.presentation.screen.HomeScreen
 import com.example.delivery.presentation.screen.ProductCardScreen
+import com.example.delivery.presentation.viewmodel.BasketViewModel
 import com.example.delivery.presentation.viewmodel.HomeViewModel
 
 @Composable
-fun SetupNavGraph(navController: NavHostController, factory: ViewModelProvider.Factory) {
+fun SetupNavGraph(
+    navController: NavHostController,
+    factory: ViewModelProvider.Factory,
+) {
     val getVmFactory: () -> ViewModelProvider.Factory = remember {
         { factory }
     }
@@ -29,10 +33,17 @@ fun SetupNavGraph(navController: NavHostController, factory: ViewModelProvider.F
             AnimatedSplashScreen(navController)
         }
         composable(route = Screen.Home.route) {
-            HomeScreen(navController = navController, viewModel = homeViewModel)
+            HomeScreen(
+                navController = navController,
+                viewModel = homeViewModel,
+            )
         }
         composable(route = Screen.Basket.route) {
-            BasketScreen(navController, viewModel = homeViewModel)
+            val basketViewModel: BasketViewModel = viewModel(factory = getVmFactory())
+            BasketScreen(
+                navController,
+                viewModel = basketViewModel,
+            )
         }
         composable(
             route = Screen.ProductCard.route + "/{productId}",
@@ -40,8 +51,8 @@ fun SetupNavGraph(navController: NavHostController, factory: ViewModelProvider.F
         ) { backStackEntry ->
             ProductCardScreen(
                 navController = navController,
-                productId = backStackEntry.arguments?.getInt("productId"),
                 viewModel = homeViewModel,
+                productId = backStackEntry.arguments?.getInt("productId"),
             )
         }
     }

@@ -95,7 +95,7 @@ fun HomeScreen(
         onRemoveBasketItem = { product -> viewModel.onRemoveBasketItem(product) },
         basketProducts = model.basketProducts,
         cost = model.cost,
-        navController = navController
+        navController = navController,
     )
     LaunchedEffect(Unit) {
         viewModel.onScreenOpened()
@@ -120,7 +120,7 @@ fun HomeContent(
     onRemoveBasketItem: (Product) -> Unit,
     basketProducts: List<Product>,
     cost: Int,
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
         if (isSearchViewOpened) {
@@ -247,7 +247,7 @@ fun BottomSheet(
 fun DefaultAppBar(
     filterState: FilterState,
     onSheetStateChanged: (Boolean) -> Unit,
-    onSearchViewStateChanged: (Boolean) -> Unit
+    onSearchViewStateChanged: (Boolean) -> Unit,
 ) {
     CenterAlignedTopAppBar(
         title = {
@@ -264,7 +264,9 @@ fun DefaultAppBar(
                         Badge {
                             Text(
                                 text = when {
-                                    (!isWithoutMeat && isSpicy && isDiscounted) || (isWithoutMeat && !isSpicy && isDiscounted) || (isWithoutMeat && isSpicy && !isDiscounted) -> "2"
+                                    (!isWithoutMeat && isSpicy && isDiscounted)
+                                            || (isWithoutMeat && !isSpicy && isDiscounted)
+                                            || (isWithoutMeat && isSpicy && !isDiscounted) -> "2"
 
                                     isWithoutMeat && isSpicy -> "3"
                                     isWithoutMeat || isSpicy || isDiscounted -> "1"

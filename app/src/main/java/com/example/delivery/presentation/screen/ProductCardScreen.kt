@@ -42,16 +42,15 @@ import com.example.delivery.ui.theme.White
 @Composable
 fun ProductCardScreen(
     navController: NavHostController,
-    productId: Int?,
     viewModel: HomeViewModel,
+    productId: Int?,
 ) {
     val model by viewModel.viewState.observeAsState(HomeViewState())
     if (productId != null) {
         ProductCard(
             navController = navController,
-            basketProducts = model.basketProducts,
             product = model.products.first { product -> product.id == productId },
-            cost = model.cost
+            onAddBasketItem = { product -> viewModel.onAddBasketItem(product) },
         )
     }
 }
@@ -59,9 +58,8 @@ fun ProductCardScreen(
 @Composable
 fun ProductCard(
     navController: NavHostController,
-    basketProducts: List<Product>,
     product: Product?,
-    cost: Int,
+    onAddBasketItem: (Product) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -69,13 +67,15 @@ fun ProductCard(
             .verticalScroll(rememberScrollState())
     ) {
         Box {
-            OutlinedIconButton(modifier = Modifier
-                .wrapContentSize()
-                .align(Alignment.TopStart)
-                .padding(16.dp),
+            OutlinedIconButton(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .align(Alignment.TopStart)
+                    .padding(16.dp),
                 shape = CircleShape,
                 border = BorderStroke(1.dp, LightGray),
-                onClick = { navController.navigate(Screen.Home.route) }) {
+                onClick = { navController.navigate(Screen.Home.route) },
+            ) {
                 Icon(
                     painterResource(id = R.drawable.arrowleft),
                     contentDescription = "Arrow left",
@@ -150,19 +150,23 @@ fun ProductCard(
                 Spacer(modifier = Modifier.weight(1f))
                 Text(text = String.format("%s г", product.carbohydratesPer100Grams.toString()))
             }
-        }
-        Divider(color = Color.Gray, thickness = 1.dp)
-        Button(
-            onClick = {
-                navController.navigate(Screen.Basket.route)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(4.dp),
-            colors = ButtonDefaults.buttonColors(Orange40)
-        ) {
-            Text(text = String.format("В корзину за  %d ₽", cost), color = White)
+            Divider(color = Color.Gray, thickness = 1.dp)
+            Button(
+                onClick = {
+                    onAddBasketItem(product)
+                    navController.navigate(Screen.Basket.route)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(Orange40)
+            ) {
+                Text(
+                    text = String.format("В корзину за  %d ₽", product.currentPrice),
+                    color = White,
+                )
+            }
         }
     }
 }
