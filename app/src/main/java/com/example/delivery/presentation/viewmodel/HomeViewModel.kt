@@ -8,7 +8,7 @@ import com.example.delivery.data.model.Category
 import com.example.delivery.data.repository.BasketRepository
 import com.example.delivery.data.repository.ProductRepository
 import com.example.delivery.domain.model.Product
-import com.example.delivery.presentation.viewstate.FilterState
+import com.example.delivery.domain.model.Tag
 import com.example.delivery.presentation.viewstate.HomeViewState
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -24,14 +24,18 @@ class HomeViewModel
     val viewState: LiveData<HomeViewState> = _viewState
 
     private var products: List<Product> = listOf()
+    private var categoryProducts: List<Product> = listOf()
+    private var tags: List<Tag> = listOf()
 
     fun onScreenOpened() {
         viewModelScope.launch {
             products = productRepository.getProducts()
+            tags = productRepository.getTags()
             try {
                 _viewState.value = _viewState.value?.copy(
                     categories = productRepository.getCategories(),
                     products = products,
+                    tags = tags,
                 )
             } catch (exception: IOException) {
 
@@ -45,38 +49,17 @@ class HomeViewModel
         )
     }
 
-    fun onCheckedChanged(index: Int, checked: Boolean) {
-        when (index) {
-            0 -> _viewState.value = _viewState.value?.copy(
-                filerState = _viewState.value?.filerState?.copy(isWithoutMeat = checked)
-                    ?: getDefaultFilterState(),
-                products = if (checked) {
-                    products.filter { product -> product.tagIds.contains(2) }
-                } else {
-                    products
-                },
-            )
-
-            1 -> _viewState.value = _viewState.value?.copy(
-                filerState = _viewState.value?.filerState?.copy(isSpicy = checked)
-                    ?: getDefaultFilterState(),
-                products = if (checked) {
-                    products.filter { product -> product.tagIds.contains(4) }
-                } else {
-                    products
-                },
-            )
-
-            2 -> _viewState.value = _viewState.value?.copy(
-                filerState = _viewState.value?.filerState?.copy(isDiscounted = checked)
-                    ?: getDefaultFilterState(),
-                products = if (checked) {
-                    products.filter { product -> product.oldPrice != null }
-                } else {
-                    products
-                },
-            )
-        }
+    fun onCheckedChanged(tag: Tag, checked: Boolean) {
+        val tags = _viewState.value?.tags!!.toMutableList()
+        tags[tags.indexOf(tag)] = tag.copy(isSelected = checked)
+        _viewState.value = _viewState.value?.copy(
+            products = if (checked) {
+                categoryProducts.filter { product -> product.tagIds.contains(tag.id) }
+            } else {
+                categoryProducts
+            },
+            tags = tags,
+        )
     }
 
     fun onSearchViewStateChanged(state: Boolean) {
@@ -95,9 +78,11 @@ class HomeViewModel
     }
 
     fun onCategoryChanged(category: Category) {
+        categoryProducts = products.filter { product -> product.categoryId == category.id }
         _viewState.value = _viewState.value?.copy(
             selectedCategory = category,
-            products = products.filter { product -> product.categoryId == category.id },
+            products = categoryProducts,
+            tags = tags,
         )
     }
 
@@ -114,14 +99,6 @@ class HomeViewModel
         _viewState.value = _viewState.value?.copy(
             basketProducts = basketRepository.getProducts(),
             cost = basketRepository.getFinalCost(),
-        )
-    }
-
-    private fun getDefaultFilterState(): FilterState {
-        return FilterState(
-            isWithoutMeat = false,
-            isSpicy = false,
-            isDiscounted = false,
         )
     }
 }

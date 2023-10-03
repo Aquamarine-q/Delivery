@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -66,9 +67,9 @@ import androidx.navigation.NavHostController
 import com.example.delivery.R
 import com.example.delivery.data.model.Category
 import com.example.delivery.domain.model.Product
+import com.example.delivery.domain.model.Tag
 import com.example.delivery.navigation.Screen
 import com.example.delivery.presentation.viewmodel.HomeViewModel
-import com.example.delivery.presentation.viewstate.FilterState
 import com.example.delivery.presentation.viewstate.HomeViewState
 import com.example.delivery.ui.theme.LightGray
 import com.example.delivery.ui.theme.Orange40
@@ -83,12 +84,12 @@ fun HomeScreen(
     HomeContent(
         categories = model.categories,
         products = model.products,
-        filterState = model.filerState,
+        tags = model.tags,
         isSheetOpen = model.isSheetOpen,
         isSearchViewOpened = model.isSearchViewOpened,
         searchText = model.searchText,
         onSheetStateChanged = { state -> viewModel.onSheetStateChanged(state) },
-        onCheckedChange = { index, checked -> viewModel.onCheckedChanged(index, checked) },
+        onCheckedChange = { tag, checked -> viewModel.onCheckedChanged(tag, checked) },
         onTextChange = { text -> viewModel.onSearchTextChanged(text) },
         onSearchViewStateChanged = { state -> viewModel.onSearchViewStateChanged(state) },
         selectedCategory = model.selectedCategory,
@@ -108,12 +109,12 @@ fun HomeScreen(
 fun HomeContent(
     categories: List<Category>,
     products: List<Product>,
-    filterState: FilterState,
+    tags: List<Tag>,
     isSheetOpen: Boolean,
     isSearchViewOpened: Boolean,
     searchText: String,
     onSheetStateChanged: (Boolean) -> Unit,
-    onCheckedChange: (Int, Boolean) -> Unit,
+    onCheckedChange: (Tag, Boolean) -> Unit,
     onTextChange: (String) -> Unit,
     onSearchViewStateChanged: (Boolean) -> Unit,
     selectedCategory: Category,
@@ -133,7 +134,7 @@ fun HomeContent(
             )
         } else {
             DefaultAppBar(
-                filterState = filterState,
+                tags = tags,
                 onSheetStateChanged = onSheetStateChanged,
                 onSearchViewStateChanged = onSearchViewStateChanged
             )
@@ -186,7 +187,7 @@ fun HomeContent(
                 NothingFoundScreen(isSearchViewOpened)
             }
             if (isSheetOpen) {
-                BottomSheet(onSheetStateChanged, filterState, onCheckedChange)
+                BottomSheet(onSheetStateChanged, tags, onCheckedChange)
             }
         }
     }
@@ -195,8 +196,8 @@ fun HomeContent(
 @Composable
 fun BottomSheet(
     onSheetStateChanged: (Boolean) -> Unit,
-    filterState: FilterState,
-    onCheckedChange: (Int, Boolean) -> Unit,
+    tags: List<Tag>,
+    onCheckedChange: (Tag, Boolean) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState()
     ModalBottomSheet(
@@ -208,42 +209,23 @@ fun BottomSheet(
             fontSize = 20.sp,
             modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)
         )
-        Row {
-            Text(text = "Без мяса", modifier = Modifier.padding(top = 16.dp, start = 16.dp))
-            Spacer(modifier = Modifier.weight(1f))
-            Checkbox(
-                checked = filterState.isWithoutMeat,
-                onCheckedChange = { checked -> onCheckedChange(0, checked) },
-                colors = CheckboxDefaults.colors(Orange40)
-            )
-        }
-        Divider(
-            color = Color.LightGray,
-            thickness = 1.dp,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-        Row {
-            Text(text = "Острое", modifier = Modifier.padding(top = 16.dp, start = 16.dp))
-            Spacer(modifier = Modifier.weight(1f))
-            Checkbox(
-                checked = filterState.isSpicy,
-                onCheckedChange = { checked -> onCheckedChange(1, checked) },
-                colors = CheckboxDefaults.colors(Orange40),
-            )
-        }
-        Divider(
-            color = Color.LightGray,
-            thickness = 1.dp,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-        Row {
-            Text(text = "Со скидкой", modifier = Modifier.padding(top = 16.dp, start = 16.dp))
-            Spacer(modifier = Modifier.weight(1f))
-            Checkbox(
-                checked = filterState.isDiscounted,
-                onCheckedChange = { checked -> onCheckedChange(2, checked) },
-                colors = CheckboxDefaults.colors(Orange40),
-            )
+        LazyColumn {
+            items(tags) { tag ->
+                Row {
+                    Text(text = tag.name, modifier = Modifier.padding(top = 16.dp, start = 16.dp))
+                    Spacer(modifier = Modifier.weight(1f))
+                    Checkbox(
+                        checked = tag.isSelected,
+                        onCheckedChange = { checked -> onCheckedChange(tag, checked) },
+                        colors = CheckboxDefaults.colors(Orange40)
+                    )
+                }
+                Divider(
+                    color = Color.LightGray,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+            }
         }
         Button(
             onClick = { onSheetStateChanged(false) },
@@ -260,7 +242,7 @@ fun BottomSheet(
 
 @Composable
 fun DefaultAppBar(
-    filterState: FilterState,
+    tags: List<Tag>,
     onSheetStateChanged: (Boolean) -> Unit,
     onSearchViewStateChanged: (Boolean) -> Unit,
 ) {
@@ -274,21 +256,9 @@ fun DefaultAppBar(
         },
         navigationIcon = {
             BadgedBox(badge = {
-                with(filterState) {
-                    if (isWithoutMeat || isSpicy || isDiscounted) {
-                        Badge {
-                            Text(
-                                text = when {
-                                    (!isWithoutMeat && isSpicy && isDiscounted)
-                                            || (isWithoutMeat && !isSpicy && isDiscounted)
-                                            || (isWithoutMeat && isSpicy && !isDiscounted) -> "2"
-
-                                    isWithoutMeat && isSpicy -> "3"
-                                    isWithoutMeat || isSpicy || isDiscounted -> "1"
-                                    else -> "0"
-                                }
-                            )
-                        }
+                if (tags.any { tag -> tag.isSelected }) {
+                    Badge {
+                        Text(text = tags.count { tag -> tag.isSelected }.toString())
                     }
                 }
             }) {
@@ -502,7 +472,7 @@ fun DishCard(
                         color = Color.Black,
                     )
                     Text(
-                        modifier = Modifier.padding(8.dp),
+                        modifier = Modifier.padding(start = 4.dp),
                         text = String.format("%d ₽", product.oldPrice),
                         color = Color.LightGray,
                         style = TextStyle(textDecoration = TextDecoration.LineThrough)

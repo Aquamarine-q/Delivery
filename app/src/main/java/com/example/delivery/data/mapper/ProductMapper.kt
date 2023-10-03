@@ -1,6 +1,7 @@
 package com.example.delivery.data.mapper
 
 import com.example.delivery.data.model.Product
+import com.example.delivery.data.model.Tag
 
 fun Product.toDomain() = com.example.delivery.domain.model.Product(
     id = id,
@@ -17,4 +18,10 @@ fun Product.toDomain() = com.example.delivery.domain.model.Product(
     fatsPer100Grams = fats_per_100_grams,
     carbohydratesPer100Grams = carbohydrates_per_100_grams,
     tagIds = tag_ids
+)
+
+fun Tag.toDomain() = com.example.delivery.domain.model.Tag(
+    id = id,
+    name = name,
+    isSelected = false,
 )
