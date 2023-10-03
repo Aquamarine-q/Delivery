@@ -34,7 +34,8 @@ class BasketViewModel
     fun onRemoveBasketItem(product: Product) {
         basketRepository.removeProduct(product)
         _viewState.value = _viewState.value?.copy(
-            products = basketRepository.getProducts(), cost = basketRepository.getFinalCost()
+            products = basketRepository.getProducts(),
+            cost = basketRepository.getFinalCost(),
         )
     }
 }

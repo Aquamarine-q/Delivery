@@ -6,6 +6,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -56,6 +57,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -143,41 +145,45 @@ fun HomeContent(
                 .padding(values)
         ) {
             CategoryChips(selectedCategory, categories, onCategoryChanged)
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(products) { product ->
-                    DishCard(
-                        product,
-                        basketProducts,
-                        onAddBasketItem,
-                        onRemoveBasketItem,
-                        navController,
-                    )
+            if (products.isNotEmpty()) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(products) { product ->
+                        DishCard(
+                            product,
+                            basketProducts,
+                            onAddBasketItem,
+                            onRemoveBasketItem,
+                            navController,
+                        )
+                    }
                 }
-            }
-            Button(
-                onClick = {
-                    navController.navigate(Screen.Basket.route)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(4.dp),
-                colors = ButtonDefaults.buttonColors(Orange40)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.cart),
-                    contentDescription = "Cart",
-                    tint = White
-                )
-                Text(text = String.format("  %d ₽", cost), color = White)
+                Button(
+                    onClick = {
+                        navController.navigate(Screen.Basket.route)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.buttonColors(Orange40)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.cart),
+                        contentDescription = "Cart",
+                        tint = White
+                    )
+                    Text(text = String.format("  %d ₽", cost), color = White)
+                }
+            } else {
+                NothingFoundScreen(isSearchViewOpened)
             }
             if (isSheetOpen) {
                 BottomSheet(onSheetStateChanged, filterState, onCheckedChange)
@@ -190,17 +196,20 @@ fun HomeContent(
 fun BottomSheet(
     onSheetStateChanged: (Boolean) -> Unit,
     filterState: FilterState,
-    onCheckedChange: (Int, Boolean) -> Unit
+    onCheckedChange: (Int, Boolean) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState()
-    ModalBottomSheet(sheetState = sheetState, onDismissRequest = { onSheetStateChanged(false) }) {
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = { onSheetStateChanged(false) },
+    ) {
         Text(
             text = "Подобрать блюда",
             fontSize = 20.sp,
             modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)
         )
         Row {
-            Text(text = "Без мяса", modifier = Modifier.padding(16.dp))
+            Text(text = "Без мяса", modifier = Modifier.padding(top = 16.dp, start = 16.dp))
             Spacer(modifier = Modifier.weight(1f))
             Checkbox(
                 checked = filterState.isWithoutMeat,
@@ -209,10 +218,12 @@ fun BottomSheet(
             )
         }
         Divider(
-            color = Color.LightGray, thickness = 1.dp, modifier = Modifier.padding(8.dp)
+            color = Color.LightGray,
+            thickness = 1.dp,
+            modifier = Modifier.padding(horizontal = 8.dp)
         )
         Row {
-            Text(text = "Острое", modifier = Modifier.padding(16.dp))
+            Text(text = "Острое", modifier = Modifier.padding(top = 16.dp, start = 16.dp))
             Spacer(modifier = Modifier.weight(1f))
             Checkbox(
                 checked = filterState.isSpicy,
@@ -221,10 +232,12 @@ fun BottomSheet(
             )
         }
         Divider(
-            color = Color.LightGray, thickness = 1.dp, modifier = Modifier.padding(8.dp)
+            color = Color.LightGray,
+            thickness = 1.dp,
+            modifier = Modifier.padding(horizontal = 8.dp)
         )
         Row {
-            Text(text = "Со скидкой", modifier = Modifier.padding(16.dp))
+            Text(text = "Со скидкой", modifier = Modifier.padding(top = 16.dp, start = 16.dp))
             Spacer(modifier = Modifier.weight(1f))
             Checkbox(
                 checked = filterState.isDiscounted,
@@ -236,10 +249,12 @@ fun BottomSheet(
             onClick = { onSheetStateChanged(false) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 32.dp),
+                .padding(16.dp),
             shape = RoundedCornerShape(4.dp),
-            colors = ButtonDefaults.buttonColors(White)
-        ) {}
+            colors = ButtonDefaults.buttonColors(Orange40)
+        ) {
+            Text(text = "Готово", color = White)
+        }
     }
 }
 
@@ -356,12 +371,12 @@ fun CategoryChips(
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(categories) { category ->
             Surface(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(16.dp)
                     .toggleable(
                         value = category == selectedCategory,
                         onValueChange = { onCategoryChanged(category) },
@@ -375,7 +390,7 @@ fun CategoryChips(
             ) {
                 Text(
                     text = category.name,
-                    modifier = Modifier.padding(4.dp),
+                    modifier = Modifier.padding(8.dp),
                     color = if (category == selectedCategory) {
                         White
                     } else {
@@ -408,11 +423,49 @@ fun DishCard(
         },
         colors = CardDefaults.cardColors(containerColor = LightGray),
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.photo),
-            contentDescription = "Photo of the dish",
-            modifier = Modifier.padding(8.dp)
-        )
+        Box(modifier = Modifier.padding(8.dp)) {
+            when {
+                product.oldPrice != null -> {
+                    Icon(
+                        painter = painterResource(id = R.drawable.discount),
+                        contentDescription = "Discount",
+                        tint = Color.Unspecified,
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .align(Alignment.TopStart)
+                            .padding(8.dp),
+                    )
+                }
+
+                product.tagIds.contains(2) -> {
+                    Icon(
+                        painter = painterResource(id = R.drawable.withoutmeat),
+                        contentDescription = "Without meat",
+                        tint = Color.Unspecified,
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .align(Alignment.TopStart)
+                            .padding(8.dp),
+                    )
+                }
+
+                product.tagIds.contains(4) -> {
+                    Icon(
+                        painter = painterResource(id = R.drawable.spicy),
+                        contentDescription = "Spicy",
+                        tint = Color.Unspecified,
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .align(Alignment.TopStart)
+                            .padding(8.dp),
+                    )
+                }
+            }
+            Image(
+                painter = painterResource(id = R.drawable.photo),
+                contentDescription = "Photo of the dish",
+            )
+        }
         Text(
             text = product.name,
             modifier = Modifier.padding(16.dp),
@@ -433,7 +486,8 @@ fun DishCard(
             TextButton(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(8.dp)
+                    .background(White, CutCornerShape(4.dp)),
                 onClick = { onAddBasketItem(product) },
                 colors = ButtonDefaults.buttonColors(Color.White),
             ) {
@@ -464,17 +518,21 @@ fun ChangeProductCountButton(
     product: Product,
     basketProducts: List<Product>,
     onAddBasketItem: (Product) -> Unit,
-    onRemoveBasketItem: (Product) -> Unit
+    onRemoveBasketItem: (Product) -> Unit,
 ) {
-    Row {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.Center,
+    ) {
         OutlinedIconButton(
             onClick = { onRemoveBasketItem(product) },
             modifier = Modifier
                 .wrapContentSize()
-                .padding(16.dp)
-                .background(LightGray, CutCornerShape(4.dp)),
+                .background(White, CutCornerShape(4.dp)),
             shape = CutCornerShape(4.dp),
-            border = BorderStroke(1.dp, LightGray),
+            border = BorderStroke(1.dp, White),
         ) {
             Icon(
                 painterResource(id = R.drawable.minus),
@@ -486,32 +544,50 @@ fun ChangeProductCountButton(
             text = basketProducts.count { it == product }.toString(),
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .padding(8.dp)
+                .weight(1f)
                 .align(Alignment.CenterVertically),
-            fontSize = 16.sp
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center,
         )
         OutlinedIconButton(
             onClick = { onAddBasketItem(product) },
             modifier = Modifier
                 .wrapContentSize()
-                .padding(16.dp)
-                .background(LightGray, CutCornerShape(4.dp)),
+                .background(White, CutCornerShape(4.dp)),
             shape = CutCornerShape(4.dp),
-            border = BorderStroke(1.dp, LightGray),
+            border = BorderStroke(1.dp, White),
         ) {
             Icon(
                 painterResource(id = R.drawable.plus), contentDescription = "Plus", tint = Orange40
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
-        Text(
-            text = "480 ₽",
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.CenterVertically),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
-        )
+    }
+}
+
+@Composable
+fun NothingFoundScreen(isSearchViewOpened: Boolean) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        if (isSearchViewOpened) {
+            Text(
+                text = "Ничего не нашлось :(",
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        } else {
+            Text(
+                text = "Таких блюд нет :(",
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Text(
+                text = "Попробуйте изменить фильтры",
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
     }
 }
 

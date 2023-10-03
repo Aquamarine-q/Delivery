@@ -47,21 +47,21 @@ class HomeViewModel
 
     fun onCheckedChanged(index: Int, checked: Boolean) {
         when (index) {
-            0 -> _viewState.value =
-                _viewState.value?.copy(filerState = _viewState.value?.filerState?.copy(isWithoutMeat = checked)
-                    ?: getDefaultFilterState(), products = if (checked) {
+            0 -> _viewState.value = _viewState.value?.copy(
+                filerState = _viewState.value?.filerState?.copy(isWithoutMeat = checked)
+                    ?: getDefaultFilterState(),
+                products = if (checked) {
                     products.filter { product -> product.tagIds.contains(2) }
                 } else {
                     products
-                })
+                },
+            )
 
             1 -> _viewState.value = _viewState.value?.copy(
                 filerState = _viewState.value?.filerState?.copy(isSpicy = checked)
                     ?: getDefaultFilterState(),
                 products = if (checked) {
-                    products.filter { product ->
-                        product.tagIds.contains(2)
-                    }
+                    products.filter { product -> product.tagIds.contains(4) }
                 } else {
                     products
                 },
@@ -70,6 +70,11 @@ class HomeViewModel
             2 -> _viewState.value = _viewState.value?.copy(
                 filerState = _viewState.value?.filerState?.copy(isDiscounted = checked)
                     ?: getDefaultFilterState(),
+                products = if (checked) {
+                    products.filter { product -> product.oldPrice != null }
+                } else {
+                    products
+                },
             )
         }
     }

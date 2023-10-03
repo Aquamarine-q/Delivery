@@ -7,7 +7,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -133,7 +132,7 @@ fun BasketContent(
                 }
             }
         } else {
-            EmptyBasket(values)
+            EmptyBasket()
         }
     }
 }
@@ -203,22 +202,21 @@ fun BasketItem(
                     Text(
                         text = String.format("%d ₽", product.currentPrice),
                         modifier = Modifier
-                            .padding(16.dp)
                             .align(Alignment.CenterVertically),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
                     )
                 } else {
-                    Text(
-                        text = String.format("%d ₽", product.currentPrice),
-                        color = Color.Black,
-                    )
-                    Text(
-                        modifier = Modifier.padding(8.dp),
-                        text = String.format("%d ₽", product.oldPrice),
-                        color = Color.LightGray,
-                        style = TextStyle(textDecoration = TextDecoration.LineThrough)
-                    )
+                    Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+                        Text(
+                            text = String.format("%d ₽", product.currentPrice),
+                            color = Color.Black,
+                        )
+                        Text(
+                            modifier = Modifier.padding(8.dp),
+                            text = String.format("%d ₽", product.oldPrice),
+                            color = Color.LightGray,
+                            style = TextStyle(textDecoration = TextDecoration.LineThrough)
+                        )
+                    }
                 }
             }
         }
@@ -227,12 +225,8 @@ fun BasketItem(
 }
 
 @Composable
-fun EmptyBasket(values: PaddingValues) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(values)
-    ) {
+fun EmptyBasket() {
+    Box(modifier = Modifier.fillMaxSize()) {
         Text(
             text = "Пусто, выберите блюда в каталоге :)",
             color = Color.Gray,
@@ -244,5 +238,5 @@ fun EmptyBasket(values: PaddingValues) {
 @Composable
 @Preview
 fun BasketScreenPreview() {
-    EmptyBasket(PaddingValues())
+    EmptyBasket()
 }
